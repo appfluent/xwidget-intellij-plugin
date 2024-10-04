@@ -1,0 +1,65 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>us.appfluent.xwidget-jetbrains-plugin</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>Flutter XWidget</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="support@appfluent.us" url="https://www.appfluent.us">Appfluent</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[The Flutter XWidget plugin provides framework support in IntelliJ IDEA and Android Studio.<br>
+      <ul>
+        <li>EL syntax highlighting</li>
+        <li>Tools menu options for generating components</li>
+      </ul>
+      <a href="https://pub.dev/packages/xwidget">XWidget</a><br>
+      <a href="https://github.com/appfluent/xwidget/issues">Issue Tacker</a><br>
+    ]]></description>
+
+    <version>1.0</version>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.xml</depends>
+    <depends>org.jetbrains.plugins.terminal</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <annotator language="XML" implementationClass="us.appfluent.xwidget.highlight.ELAnnotator"/>
+    </extensions>
+
+    <actions>
+        <group id="us.appfluent.xwidget.actions"
+               text="XWidget"
+               description="XWidget"
+               popup="true"
+               icon="/META-INF/pluginIcon.svg">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <action id="us.appfluent.xwidget.actions.generate-all"
+                    class="us.appfluent.xwidget.actions.GenerateAllAction"
+                    text="Generate All"
+                    description="Generate something awesome!"/>
+            <separator/>
+            <action id="us.appfluent.xwidget.actions.generate-inflaters"
+                    class="us.appfluent.xwidget.actions.GenerateInflatersAction"
+                    text="Generate Inflaters"
+                    description="Generate something awesome!"/>
+            <action id="us.appfluent.xwidget.actions.generate-icons"
+                    class="us.appfluent.xwidget.actions.GenerateIconsAction"
+                    text="Generate Icons"
+                    description="Generate something awesome!"/>
+            <action id="us.appfluent.xwidget.actions.generate-controllers"
+                    class="us.appfluent.xwidget.actions.GenerateControllersAction"
+                    text="Generate Controllers"
+                    description="Generate something awesome!"/>
+        </group>
+    </actions>
+</idea-plugin>
