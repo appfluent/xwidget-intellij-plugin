@@ -3,35 +3,50 @@
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>us.appfluent.xwidget-jetbrains-plugin</id>
 
-    <!-- Public plugin name should be written in Title Case.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <version>0.1.1</version>
+
+    <!-- Public plugin name should be written in Title Case -->
     <name>Flutter XWidget</name>
 
-    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page -->
     <vendor email="support@appfluent.us" url="https://www.appfluent.us">Appfluent</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    -->
     <description><![CDATA[The Flutter XWidget plugin provides framework support in IntelliJ IDEA and Android Studio.<br>
       <ul>
         <li>EL syntax highlighting</li>
-        <li>Tools menu options for generating components</li>
+        <li>Tools menu options for component generation and project initialization</li>
+        <li>Links to documentation and issues</li>
       </ul>
+      <br>
       <a href="https://pub.dev/packages/xwidget">XWidget</a><br>
       <a href="https://github.com/appfluent/xwidget/issues">Issue Tacker</a><br>
     ]]></description>
 
-    <version>1.0</version>
+    <!-- A short summary of new features, bugfixes, and changes provided with the latest plugin version. Change
+         notes are displayed on the JetBrains Marketplace plugin page and in the Plugins settings dialog.
+         Simple HTML elements, like text formatting, paragraphs, lists, etc., are allowed and must be wrapped
+         into <![CDATA[... ]]> section.
+     -->
+    <change-notes><![CDATA[
+        <h3>0.1.1 (Oct 5, 2024)</h3>
+        <ul>
+            <li>Added Tools menu options to initialize project, view documentation, and view issues.</li>
+        </ul>
+        <h3>0.1.0 (Oct 4, 2024)</h3>
+        <ul>
+            <li>Initial release.</li>
+        </ul>
+    ]]></change-notes>
 
-    <!-- Product and plugin compatibility requirements.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <!-- Product and plugin compatibility requirements -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.xml</depends>
     <depends>org.jetbrains.plugins.terminal</depends>
 
-    <!-- Extension points defined by the plugin.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <!-- Extension points defined by the plugin -->
     <extensions defaultExtensionNs="com.intellij">
         <annotator language="XML" implementationClass="us.appfluent.xwidget.highlight.ELAnnotator"/>
     </extensions>
@@ -60,6 +75,24 @@
                     class="us.appfluent.xwidget.actions.GenerateControllersAction"
                     text="Generate Controllers"
                     description="Generate something awesome!"/>
+            <separator/>
+            <action id="us.appfluent.xwidget.actions.init-new-app"
+                    class="us.appfluent.xwidget.actions.InitNewProjectAction"
+                    text="Initialize New Project"
+                    description="Initializes an XWidget project and overwrites existing files."/>
+            <action id="us.appfluent.xwidget.actions.init-existing-app"
+                    class="us.appfluent.xwidget.actions.InitExistingProjectAction"
+                    text="Initialize Existing Project"
+                    description="Initializes an XWidget project and preserves existing files."/>
+            <separator/>
+            <action id="us.appfluent.xwidget.actions.documentation"
+                    class="us.appfluent.xwidget.actions.ViewDocumentationAction"
+                    text="Documentation"
+                    description="View documentation"/>
+            <action id="us.appfluent.xwidget.actions.issues"
+                    class="us.appfluent.xwidget.actions.ViewIssuesAction"
+                    text="View/Report Issues"
+                    description="View/report issues"/>
         </group>
     </actions>
 </idea-plugin>

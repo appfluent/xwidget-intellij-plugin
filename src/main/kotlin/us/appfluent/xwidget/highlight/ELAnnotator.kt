@@ -21,7 +21,6 @@ class ELAnnotator : Annotator {
             matches.forEach { matchResult ->
                 val elExpression = matchResult.value // This is the full EL expression
                 val startOffset = matchResult.range.first
-                val endOffset = matchResult.range.last + 1  // +1 because range is exclusive at the end
                 val lexer = FlexAdapter(ELLexer(null))
 
                 lexer.start(elExpression)

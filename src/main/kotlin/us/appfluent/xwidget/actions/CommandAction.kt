@@ -4,16 +4,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
-
 import org.jetbrains.plugins.terminal.ShellTerminalWidget
 import org.jetbrains.plugins.terminal.TerminalToolWindowFactory
 import org.jetbrains.plugins.terminal.TerminalToolWindowManager
-
-
-class GenerateAllAction: CommandAction("dart run xwidget:generate")
-class GenerateInflatersAction: CommandAction("dart run xwidget:generate --only inflaters")
-class GenerateIconsAction: CommandAction("dart run xwidget:generate --only icons")
-class GenerateControllersAction: CommandAction("dart run xwidget:generate --only controllers")
 
 abstract class CommandAction(private val cmd: String) : AnAction() {
     companion object {
