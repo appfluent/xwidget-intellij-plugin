@@ -27,7 +27,6 @@ class ELAnnotator : Annotator {
                 while (lexer.tokenType != null) {
                     val start = startOffset + element.valueTextRange.startOffset + lexer.tokenStart
                     val end = startOffset + element.valueTextRange.startOffset + lexer.tokenEnd
-                    println(lexer.tokenType)
                     highlight(holder, start, end, lexer.tokenType)
                     lexer.advance()
                 }

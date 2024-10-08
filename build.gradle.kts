@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "us.appfluent"
-version = "0.1.1"
+version = "0.1.2"
 
 repositories {
     mavenCentral()
@@ -21,10 +21,13 @@ intellijPlatform {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity("2023.2.6", useInstaller = true)
+        intellijIdeaCommunity("2024.2.1", useInstaller = true)
 
-        bundledPlugin("com.intellij.java")
-        bundledPlugin("org.jetbrains.plugins.terminal")
+        bundledPlugins(
+            "com.intellij.java",
+            "org.jetbrains.plugins.terminal",
+        )
+        plugins("Dart:242.21829.3")
 
         instrumentationTools()
     }

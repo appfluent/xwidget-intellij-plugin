@@ -59,7 +59,7 @@ enum class ELSyntaxHighlight(
         private val attributes: MutableMap<IElementType, ELSyntaxHighlight> by lazy {
             mutableMapOf<IElementType, ELSyntaxHighlight>().apply {
                 // Populate the map after the companion object is initialized
-                for (highlight in values()) {
+                for (highlight in ELSyntaxHighlight.entries) {
                     put(highlight.tokenType, highlight)
                 }
             }

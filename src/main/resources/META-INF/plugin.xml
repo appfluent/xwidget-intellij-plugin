@@ -1,9 +1,9 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
-    <id>us.appfluent.xwidget-jetbrains-plugin</id>
+    <id>us.appfluent.xwidget-intellij-plugin</id>
 
-    <version>0.1.1</version>
+    <version>0.1.2</version>
 
     <!-- Public plugin name should be written in Title Case -->
     <name>Flutter XWidget</name>
@@ -17,7 +17,8 @@
     <description><![CDATA[The Flutter XWidget plugin provides framework support in IntelliJ IDEA and Android Studio.<br>
       <ul>
         <li>EL syntax highlighting</li>
-        <li>Tools menu options for component generation and project initialization</li>
+        <li>Tools menu items for component generation and project initialization</li>
+        <li>Context aware popup menu items to navigate to controllers and fragments.</li>
         <li>Links to documentation and issues</li>
       </ul>
       <br>
@@ -31,11 +32,15 @@
          into <![CDATA[... ]]> section.
      -->
     <change-notes><![CDATA[
-        <h3>0.1.1 (Oct 5, 2024)</h3>
+        <h3>0.1.2</h3>
         <ul>
-            <li>Added Tools menu options to initialize project, view documentation, and view issues.</li>
+            <li>Added context aware popup menu items to navigate to controllers and fragments.</li>
         </ul>
-        <h3>0.1.0 (Oct 4, 2024)</h3>
+        <h3>0.1.1</h3>
+        <ul>
+            <li>Added Tools menu items to initialize project, view documentation, and view issues.</li>
+        </ul>
+        <h3>0.1.0</h3>
         <ul>
             <li>Initial release.</li>
         </ul>
@@ -44,7 +49,10 @@
     <!-- Product and plugin compatibility requirements -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.xml</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends>com.intellij.modules.java</depends>
     <depends>org.jetbrains.plugins.terminal</depends>
+    <depends>Dart</depends>
 
     <!-- Extension points defined by the plugin -->
     <extensions defaultExtensionNs="com.intellij">
@@ -52,11 +60,27 @@
     </extensions>
 
     <actions>
+
+        <action id="us.appfluent.xwidget.actions.goto-controller"
+                class="us.appfluent.xwidget.actions.GoToControllerAction"
+                text="Go To Controller"
+                icon="/icons/xwidget-16x16.png">
+            <add-to-group group-id="EditorPopupMenu.GoTo" anchor="last"/>
+            <keyboard-shortcut first-keystroke="ctrl shift X" keymap="$default"/>
+        </action>
+        <action id="us.appfluent.xwidget.actions.goto-fragment"
+                class="us.appfluent.xwidget.actions.GoToFragmentAction"
+                text="Go To Fragment"
+                icon="/icons/xwidget-16x16.png">
+            <add-to-group group-id="EditorPopupMenu.GoTo" anchor="last"/>
+            <keyboard-shortcut first-keystroke="ctrl shift X" keymap="$default"/>
+        </action>
+
         <group id="us.appfluent.xwidget.actions"
                text="XWidget"
                description="XWidget"
                popup="true"
-               icon="/META-INF/pluginIcon.svg">
+               icon="/icons/xwidget-16x16.png">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
             <action id="us.appfluent.xwidget.actions.generate-all"
                     class="us.appfluent.xwidget.actions.GenerateAllAction"

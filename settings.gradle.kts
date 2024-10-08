@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "xwidget-jetbrains-plugin"
+rootProject.name = "xwidget-intellij-plugin"
