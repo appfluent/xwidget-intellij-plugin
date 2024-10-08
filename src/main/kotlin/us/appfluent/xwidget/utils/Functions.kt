@@ -135,7 +135,7 @@ fun getOrSelectPsiFile(project: Project, psiFiles: List<PsiFile>): PsiFile? {
                 psiFiles.forEach { psiFile -> add(psiFile.relativePath(project)) }
             }
             val itemIndex = showScrollableListDialog(project, "Select Item", paths)
-            if (itemIndex != null) psiFiles[itemIndex] else null
+            if (itemIndex != null && itemIndex > -1) psiFiles[itemIndex] else null
         }
     }
 }

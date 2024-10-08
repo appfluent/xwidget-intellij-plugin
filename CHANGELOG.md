@@ -1,3 +1,8 @@
+### 0.1.3 (Oct 8, 2024)
+
+* Fixed Android Studio compatibility issues
+* Minor bug fixes
+
 ### 0.1.2 (Oct 8, 2024)
 
 * Added context aware popup menu items to navigate to controllers and fragments. 

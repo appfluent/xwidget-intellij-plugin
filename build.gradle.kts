@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "us.appfluent"
-version = "0.1.2"
+version = "0.1.3"
 
 repositories {
     mavenCentral()
@@ -44,16 +44,16 @@ sourceSets {
 tasks {
     // Set the JVM compatibility versions
     withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+        sourceCompatibility = "21"
+        targetCompatibility = "21"
     }
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+        kotlinOptions.jvmTarget = "21"
     }
 
     patchPluginXml {
-        sinceBuild.set("232")
-        untilBuild.set("242.*")
+        sinceBuild.set("242")
+        untilBuild.set("243.*")
     }
 
     signPlugin {
