@@ -7,8 +7,8 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.util.Key
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlTag
-import us.appfluent.xwidget.utils.findXmlTag
-import us.appfluent.xwidget.utils.isXWidgetFragment
+import us.appfluent.xwidget.utils.XWidgetUtils
+import us.appfluent.xwidget.utils.XmlUtils
 
 
 abstract class XmlNavigationAction(
@@ -44,10 +44,10 @@ abstract class XmlNavigationAction(
     override fun update(e: AnActionEvent) {
         var isEnabled = false
         val psiFile = e.getData(CommonDataKeys.PSI_FILE)
-        val isFragment = isXWidgetFragment(psiFile)
+        val isFragment = XWidgetUtils.isFragment(psiFile)
         if (isFragment) {
             val editor = e.getData(CommonDataKeys.EDITOR)
-            val xmlTag = findXmlTag(psiFile, editor)
+            val xmlTag = XmlUtils.findXmlTag(psiFile, editor)
             if (xmlTag != null && xmlTag.name == tagName) {
                 isEnabled = true
                 e.presentation.putClientProperty(XML_TAG, xmlTag)

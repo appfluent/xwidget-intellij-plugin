@@ -2,7 +2,6 @@ package us.appfluent.xwidget.utils
 
 import java.nio.file.Paths
 
-
 class FileInfo(filePath: String) {
     val path: String
     val name: String

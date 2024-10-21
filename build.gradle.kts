@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "us.appfluent"
-version = "0.1.3"
+version = "0.1.4"
 
 repositories {
     mavenCentral()
@@ -32,6 +32,8 @@ dependencies {
         instrumentationTools()
     }
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.25")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.0")  // Core Jackson library
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.0")
 }
 
 sourceSets {
