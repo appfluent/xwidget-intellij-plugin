@@ -11,11 +11,18 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
+import com.intellij.xdebugger.XDebugProcess
+import com.intellij.xdebugger.XDebuggerManager
+import com.intellij.xdebugger.breakpoints.XLineBreakpoint
+import com.intellij.xdebugger.evaluation.XDebuggerEvaluator.XEvaluationCallback
+import com.intellij.xdebugger.frame.XValue
 import com.jetbrains.lang.dart.psi.DartImportStatement
 import com.jetbrains.lang.dart.psi.DartVarDeclarationList
 import us.appfluent.xwidget.XWidgetConstants.Companion.NAMESPACE
+import us.appfluent.xwidget.debug.FragmentBreakpointType
 import us.appfluent.xwidget.services.IconSpec
 import us.appfluent.xwidget.services.InflaterSpec
+import us.appfluent.xwidget.utils.UiUtils.Companion.getOrSelectPsiFile
 
 class XWidgetUtils {
     companion object {
@@ -72,7 +79,7 @@ class XWidgetUtils {
             val imports: MutableList<PsiElement> = mutableListOf()
             var inflaters: List<PsiElement>? = null
             ReadAction.run<Throwable> {
-                DartUtils.getDartFile(project, virtualFile)?.children?.forEach { child ->
+                DartUtils.findDartFile(project, virtualFile)?.children?.forEach { child ->
                     if (child is DartImportStatement) {
                         imports.add(child)
                     } else if (child is DartVarDeclarationList && child.varAccessDeclaration.name == "inflaters") {
@@ -88,7 +95,7 @@ class XWidgetUtils {
             var icons: List<PsiElement>? = null
             var iconSet: List<PsiElement>? = null
             ReadAction.run<Throwable> {
-                DartUtils.getDartFile(project, virtualFile)?.children?.forEach { child ->
+                DartUtils.findDartFile(project, virtualFile)?.children?.forEach { child ->
                     if (child is DartImportStatement) {
                         imports.add(child)
                     } else if (child is DartVarDeclarationList && child.varAccessDeclaration.name == "icons") {
@@ -100,6 +107,34 @@ class XWidgetUtils {
             }
             return IconSpec(imports, icons, iconSet)
         }
+
+        fun postFragmentBreakpoints(debugProcess: XDebugProcess) {
+            val debuggerManager = XDebuggerManager.getInstance(debugProcess.session.project)
+            val breakpointManger = debuggerManager.breakpointManager
+            breakpointManger.allBreakpoints.forEach { breakpoint ->
+                if (breakpoint is XLineBreakpoint) {
+                    postFragmentBreakpoint(debugProcess, breakpoint);
+                }
+            }
+        }
+
+        fun postFragmentBreakpoint(debugProcess: XDebugProcess, breakpoint: XLineBreakpoint<*>) {
+            if (breakpoint.type is FragmentBreakpointType) {
+                val fileUrl = breakpoint.fileUrl
+                val line = breakpoint.line
+                val expression = "Debugger().addBreakpoint('${fileUrl}', ${line})"
+                debugProcess.evaluator!!.evaluate(expression, DebuggerEvaluationCallback(), null)
+            }
+        }
     }
 }
 
+private class DebuggerEvaluationCallback : XEvaluationCallback {
+    override fun errorOccurred(errorMessage: String) {
+        println("error occurred: $errorMessage")
+    }
+
+    override fun evaluated(result: XValue) {
+        println("evaluated: $result")
+    }
+}

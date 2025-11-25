@@ -1,3 +1,7 @@
+### 0.1.5 (Nov 22, 2025)
+
+* Added support for XWidget versions >= 0.1.0
+
 ### 0.1.4 (Oct 21, 2024)
 
 * Added `Auto Generate` toggle option the 'Tools' menu

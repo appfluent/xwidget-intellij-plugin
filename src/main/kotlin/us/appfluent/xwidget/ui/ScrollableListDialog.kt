@@ -9,20 +9,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.*
 
-fun showScrollableListDialog(
-    project: Project,
-    title: String,
-    items: List<String>,
-    visibleRowCount: Int = 10,
-    preferredSize: Dimension = Dimension(400, 200)
-): Int? {
-    val dialog = ScrollableListDialog(project, title, items, visibleRowCount, preferredSize)
-    if (dialog.showAndGet()) {
-        return dialog.getSelectedIndex()
-    }
-    return null
-}
-
 class ScrollableListDialog(
     project: Project,
     title: String,

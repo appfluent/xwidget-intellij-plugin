@@ -8,6 +8,7 @@ fun PsiFile.relativePath(project: Project): String {
     return virtualFile.path.substring(startIndex)
 }
 
-fun List<Any>.isDifferent(other: List<Any>): Boolean {
+fun List<Any>.isDifferent2
+            (other: List<Any>): Boolean {
     return distinct().size != other.distinct().size || !containsAll(other) || !other.containsAll(this)
 }

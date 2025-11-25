@@ -3,27 +3,81 @@ package us.appfluent.xwidget.actions
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import us.appfluent.xwidget.*
 import us.appfluent.xwidget.XWidgetConstants.Companion.CMD_ADD_XWIDGET
+import us.appfluent.xwidget.XWidgetConstants.Companion.CMD_ADD_XWIDGET_BUILDER
 import us.appfluent.xwidget.XWidgetConstants.Companion.CMD_GENERATE_ALL
 import us.appfluent.xwidget.XWidgetConstants.Companion.CMD_GENERATE_CONTROLLERS
+import us.appfluent.xwidget.XWidgetConstants.Companion.CMD_GENERATE_ICONS
 import us.appfluent.xwidget.XWidgetConstants.Companion.CMD_GENERATE_INFLATERS
 import us.appfluent.xwidget.XWidgetConstants.Companion.CMD_INIT_EXISTING_APP
 import us.appfluent.xwidget.XWidgetConstants.Companion.CMD_INIT_NEW_APP
+import us.appfluent.xwidget.XWidgetConstants.Companion.LEGACY_CMD_GENERATE_ALL
+import us.appfluent.xwidget.XWidgetConstants.Companion.LEGACY_CMD_GENERATE_CONTROLLERS
+import us.appfluent.xwidget.XWidgetConstants.Companion.LEGACY_CMD_GENERATE_ICONS
+import us.appfluent.xwidget.XWidgetConstants.Companion.LEGACY_CMD_GENERATE_INFLATERS
+import us.appfluent.xwidget.XWidgetConstants.Companion.LEGACY_CMD_INIT_EXISTING_APP
+import us.appfluent.xwidget.XWidgetConstants.Companion.LEGACY_CMD_INIT_NEW_APP
+import us.appfluent.xwidget.XWidgetConstants.Companion.LEGACY_LAST_VERSION
 import us.appfluent.xwidget.XWidgetConstants.Companion.URL_DOCUMENTATION
 import us.appfluent.xwidget.XWidgetConstants.Companion.URL_ISSUES
-import us.appfluent.xwidget.services.ConfigurationService
+import us.appfluent.xwidget.services.XWidgetService
 import us.appfluent.xwidget.utils.DartUtils
+import us.appfluent.xwidget.utils.Version
 import us.appfluent.xwidget.utils.XWidgetUtils
 
 
-class GenerateAllAction: CommandAction(CMD_GENERATE_ALL)
-class GenerateInflatersAction: CommandAction(CMD_GENERATE_INFLATERS)
-class GenerateIconsAction: CommandAction(XWidgetConstants.CMD_GENERATE_ICONS)
-class GenerateControllersAction: CommandAction(CMD_GENERATE_CONTROLLERS)
+class GenerateAllAction: CommandAction() {
+    override fun buildCommand(e: AnActionEvent, version: Version?): String {
+        return if (version == null || version > LEGACY_LAST_VERSION)
+            CMD_GENERATE_ALL
+        else
+            LEGACY_CMD_GENERATE_ALL
+    }
+}
 
-class InitNewProjectAction: CommandAction("$CMD_ADD_XWIDGET && $CMD_INIT_NEW_APP")
-class InitExistingProjectAction: CommandAction("$CMD_ADD_XWIDGET && $CMD_INIT_EXISTING_APP")
+class GenerateInflatersAction: CommandAction() {
+    override fun buildCommand(e: AnActionEvent, version: Version?): String {
+        return if (version == null || version > LEGACY_LAST_VERSION)
+            CMD_GENERATE_INFLATERS
+        else
+            LEGACY_CMD_GENERATE_INFLATERS
+    }
+}
+
+class GenerateIconsAction: CommandAction() {
+    override fun buildCommand(e: AnActionEvent, version: Version?): String {
+        return if (version == null || version > LEGACY_LAST_VERSION)
+            CMD_GENERATE_ICONS
+        else
+            LEGACY_CMD_GENERATE_ICONS
+    }
+}
+class GenerateControllersAction: CommandAction() {
+    override fun buildCommand(e: AnActionEvent, version: Version?): String {
+        return if (version == null || version > LEGACY_LAST_VERSION)
+            CMD_GENERATE_CONTROLLERS
+        else
+            LEGACY_CMD_GENERATE_CONTROLLERS
+    }
+}
+
+class InitNewProjectAction: CommandAction() {
+    override fun buildCommand(e: AnActionEvent, version: Version?): String {
+        return if (version == null || version > LEGACY_LAST_VERSION)
+            "$CMD_ADD_XWIDGET && $CMD_ADD_XWIDGET_BUILDER && $CMD_INIT_NEW_APP"
+        else
+            "$CMD_ADD_XWIDGET && $LEGACY_CMD_INIT_NEW_APP"
+    }
+}
+
+class InitExistingProjectAction: CommandAction() {
+    override fun buildCommand(e: AnActionEvent, version: Version?): String {
+        return if (version == null || version > LEGACY_LAST_VERSION)
+            "$CMD_ADD_XWIDGET && $CMD_ADD_XWIDGET_BUILDER && $CMD_INIT_EXISTING_APP"
+        else
+            "$CMD_ADD_XWIDGET && $LEGACY_CMD_INIT_EXISTING_APP"
+    }
+}
 
 class ViewDocumentationAction : WebsiteAction(URL_DOCUMENTATION)
 class ViewIssuesAction : WebsiteAction(URL_ISSUES)
@@ -48,7 +102,7 @@ class GoToFragmentAction: XmlNavigationAction("fragment", "name") {
 class AutoGenerateAction: ToggleAction() {
     override fun isSelected(e: AnActionEvent): Boolean {
         if (e.project != null) {
-            val service = e.project!!.getService(ConfigurationService::class.java)
+            val service = e.project!!.getService(XWidgetService::class.java)
             return service.autoGenerateEnabled
         }
         return false
@@ -56,7 +110,7 @@ class AutoGenerateAction: ToggleAction() {
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
         if (e.project != null) {
-            val service = e.project!!.getService(ConfigurationService::class.java)
+            val service = e.project!!.getService(XWidgetService::class.java)
             service.autoGenerateEnabled = state
         }
     }

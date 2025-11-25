@@ -15,12 +15,46 @@ import com.jetbrains.lang.dart.ide.index.DartClassIndex
 import com.jetbrains.lang.dart.psi.DartClass
 import com.jetbrains.lang.dart.psi.DartFile
 import com.jetbrains.lang.dart.psi.DartVarDeclarationList
+import com.jetbrains.lang.dart.util.DartUrlResolver
+import org.yaml.snakeyaml.Yaml
+import us.appfluent.xwidget.DartConstants.Companion.PUBSPEC_LOCK_PATH
+import us.appfluent.xwidget.DartConstants.Companion.PUBSPEC_PATH
+import us.appfluent.xwidget.utils.UiUtils.Companion.getOrSelectPsiFile
+import us.appfluent.xwidget.utils.UiUtils.Companion.showNotification
+import us.appfluent.xwidget.utils.FileUtils.Companion.findVirtualFile
 
 class DartUtils {
     companion object {
         private val LOG: Logger = Logger.getInstance(DartUtils::class.java)
 
-        fun getDartFile(project: Project, virtualFile: VirtualFile): DartFile? {
+        fun readPubspecFile(project: Project): Map<*, *> {
+            val file = findVirtualFile(project, PUBSPEC_PATH)
+            if (file != null) {
+                val yaml = Yaml()
+                return yaml.load(file.inputStream)
+            }
+            return emptyMap<Any, Any>()
+        }
+
+        fun readPubspecLockFile(project: Project): PubspecLock? {
+            val file = findVirtualFile(project, PUBSPEC_LOCK_PATH)
+            if (file != null) {
+                val yaml = Yaml()
+                return PubspecLock(yaml.load(file.inputStream))
+            }
+            return null
+        }
+
+        fun findDartFile(project: Project, uri: String): VirtualFile? {
+            val pubspec = findVirtualFile(project, PUBSPEC_PATH)
+            if (pubspec != null) {
+                val dartUrlResolver = DartUrlResolver.getInstance(project, pubspec)
+                return dartUrlResolver.findFileByDartUrl(uri)
+            }
+            return null
+        }
+
+        fun findDartFile(project: Project, virtualFile: VirtualFile): DartFile? {
             val psiFile = PsiManager.getInstance(project).findFile(virtualFile)
             if (psiFile != null) {
                 if (psiFile is DartFile) {
@@ -78,6 +112,7 @@ class DartUtils {
                 Messages.showWarningDialog(project, message, title)
             }
         }
+
         fun getDartListItems(varList: DartVarDeclarationList): List<PsiElement> {
             val items: MutableList<PsiElement> = mutableListOf()
             val varExpression = varList.varInit?.expression
@@ -88,5 +123,20 @@ class DartUtils {
             }
             return items;
         }
+    }
+}
+
+class PubspecLock (
+    private val data: Map<String, Any> = mapOf()
+) {
+    // Override [] for reading
+    operator fun get(key: Any): Any? {
+        return data[key]
+    }
+
+    fun getPackageVersion(packageName: String): Version? {
+        val pkgs = data["packages"] as Map<*, *>? ?: return null
+        val pkg = pkgs[packageName] as Map<*, *>? ?: return null
+        return Version.parse(pkg["version"] as String)
     }
 }

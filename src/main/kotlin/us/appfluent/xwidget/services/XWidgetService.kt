@@ -6,32 +6,42 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.actionSystem.*
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.components.*
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
-import us.appfluent.xwidget.*
+import us.appfluent.xwidget.DartConstants.Companion.PUBSPEC_LOCK_PATH
+import us.appfluent.xwidget.PluginActionPlaces
 import us.appfluent.xwidget.XWidgetConstants.Companion.DEFAULT_CONFIG_PATH
-import us.appfluent.xwidget.utils.*
+import us.appfluent.xwidget.utils.DartUtils
+import us.appfluent.xwidget.utils.UiUtils.Companion.showNotification
+import us.appfluent.xwidget.utils.FileUtils.Companion.findVirtualFile
+import us.appfluent.xwidget.utils.FileUtils.Companion.toAbsolutePath
+import us.appfluent.xwidget.utils.Version
+import us.appfluent.xwidget.utils.XWidgetUtils.Companion.getIconSpec
+import us.appfluent.xwidget.utils.XWidgetUtils.Companion.getInflaterSpec
+import us.appfluent.xwidget.utils.isDifferent2
 import java.io.File
 import kotlin.io.path.pathString
 
-class ConfigurationState: BaseState() {
+class XWidgetState: BaseState() {
     var autoGenerateEnabled by property(false)
 }
 
 @Service(Service.Level.PROJECT)
 @State(name = "ConfigurationServiceState", storages = [Storage("FlutterXWidgetPlugin.xml")])
-class ConfigurationService(val project: Project) : SimplePersistentStateComponent<ConfigurationState>(ConfigurationState()) {
+class XWidgetService(val project: Project) : SimplePersistentStateComponent<XWidgetState>(XWidgetState()) {
     companion object {
-        private val LOG: Logger = Logger.getInstance(ConfigurationService::class.java)
+        private val LOG: Logger = Logger.getInstance(XWidgetService::class.java)
     }
 
     val configPath = toAbsolutePath(project, DEFAULT_CONFIG_PATH).pathString
+    val pubspecLockPath = toAbsolutePath(project, PUBSPEC_LOCK_PATH).pathString
+
+    var pubspecLock = DartUtils.readPubspecLockFile(project)
+        private set
 
     var config: XWidgetConfig = readConfigFile()
         private set
@@ -49,6 +59,12 @@ class ConfigurationService(val project: Project) : SimplePersistentStateComponen
             toggleAutoGenerate(config, enabled)
         }
 
+    val version: Version?
+        get() = pubspecLock?.getPackageVersion("xwidget")
+
+    val builderVersion: Version?
+        get() = pubspecLock?.getPackageVersion("xwidget_builder")
+
     private val mutableIconSpecs: MutableMap<String, IconSpec>
         get() = iconSpecs as MutableMap
 
@@ -58,9 +74,10 @@ class ConfigurationService(val project: Project) : SimplePersistentStateComponen
     init {
         val fileService = project.getService(FileWatcherService::class.java)
         fileService.startWatching(configPath, ::onConfigFileChange)
+        fileService.startWatching(pubspecLockPath, ::onPubspecLockFileChange)
     }
 
-    override fun loadState(state: ConfigurationState) {
+    override fun loadState(state: XWidgetState) {
         super.loadState(state)
         toggleAutoGenerate(config, state.autoGenerateEnabled)
     }
@@ -96,10 +113,9 @@ class ConfigurationService(val project: Project) : SimplePersistentStateComponen
     private fun readIconSpecFiles(): Map<String, IconSpec> {
         val specs: MutableMap<String, IconSpec> = mutableMapOf()
         for (iconSource in config.icons.sources) {
-            val path = toAbsolutePath(project, iconSource)
-            val virtualFile = VirtualFileManager.getInstance().findFileByNioPath(path)
+            val virtualFile = findVirtualFile(project, iconSource)
             if (virtualFile != null) {
-                specs[virtualFile.path] = XWidgetUtils.getIconSpec(project, virtualFile)
+                specs[virtualFile.path] = getIconSpec(project, virtualFile)
             }
         }
         return specs
@@ -108,10 +124,9 @@ class ConfigurationService(val project: Project) : SimplePersistentStateComponen
     private fun readInflaterSpecFiles(): Map<String, InflaterSpec> {
         val specs: MutableMap<String, InflaterSpec> = mutableMapOf()
         for (inflaterSource in config.inflaters.sources) {
-            val path = toAbsolutePath(project, inflaterSource)
-            val virtualFile = VirtualFileManager.getInstance().findFileByNioPath(path)
+            val virtualFile = findVirtualFile(project, inflaterSource)
             if (virtualFile != null) {
-                specs[virtualFile.path] = XWidgetUtils.getInflaterSpec(project, virtualFile)
+                specs[virtualFile.path] = getInflaterSpec(project, virtualFile)
             }
         }
         return specs
@@ -121,59 +136,60 @@ class ConfigurationService(val project: Project) : SimplePersistentStateComponen
         LOG.debug("CHANGED: Config")
         val oldConfig = config
         config = readConfigFile()
-
-        if (oldConfig.inflaters.sources.isDifferent(config.inflaters.sources) ||
-            oldConfig.icons.sources.isDifferent(config.icons.sources)) {
+        if (oldConfig.inflaters.sources.isDifferent2(config.inflaters.sources) ||
+            oldConfig.icons.sources.isDifferent2(config.icons.sources)) {
             toggleAutoGenerate(oldConfig, false)
             toggleAutoGenerate(config, true)
             iconSpecs = readIconSpecFiles()
             inflaterSpecs = readInflaterSpecFiles()
             showNotification(project, "Generating components...")
-            ActionManager
-                .getInstance()
-                .getAction("us.appfluent.xwidget.actions.generate-all")
-                ?.actionPerformed(buildActionEvent(PluginActionPlaces.BACKGROUND))
+            ActionManager.getInstance().tryToExecute(
+                ActionManager.getInstance().getAction("us.appfluent.xwidget.actions.generate-all"),
+                null,
+                null,
+                PluginActionPlaces.BACKGROUND,
+                false
+            )
         }
     }
 
-    private fun onInflaterSpecFileChange(virtualFile: VirtualFile) {
+    private fun onInflaterSpecFileChange(file: VirtualFile) {
         LOG.debug("CHANGED: Inflater Spec")
-        val oldInflaterSpec = inflaterSpecs[virtualFile.path]
-        val newInflaterSpec = XWidgetUtils.getInflaterSpec(project, virtualFile)
+        val oldInflaterSpec = inflaterSpecs[file.path]
+        val newInflaterSpec = getInflaterSpec(project, file)
         if (oldInflaterSpec == null || oldInflaterSpec.isDifferent(newInflaterSpec)) {
-            mutableInflaterSpecs[virtualFile.path] = newInflaterSpec
+            mutableInflaterSpecs[file.path] = newInflaterSpec
             showNotification(project, "Generating inflaters...")
-            ActionManager
-                .getInstance()
-                .getAction("us.appfluent.xwidget.actions.generate-inflaters")
-                ?.actionPerformed(buildActionEvent(PluginActionPlaces.BACKGROUND))
+            ActionManager.getInstance().tryToExecute(
+                ActionManager.getInstance().getAction("us.appfluent.xwidget.actions.generate-inflaters"),
+                null,
+                null,
+                PluginActionPlaces.BACKGROUND,
+                false
+            )
         }
     }
 
-    private fun onIconSpecFileChange(virtualFile: VirtualFile) {
+    private fun onIconSpecFileChange(file: VirtualFile) {
         LOG.debug("CHANGED: Icon Spec")
-        val oldIconSpec = iconSpecs[virtualFile.path]
-        val newIconSpec = XWidgetUtils.getIconSpec(project, virtualFile)
+        val oldIconSpec = iconSpecs[file.path]
+        val newIconSpec = getIconSpec(project, file)
         if (oldIconSpec == null || oldIconSpec.isDifferent(newIconSpec)) {
-            mutableIconSpecs[virtualFile.path] = newIconSpec
+            mutableIconSpecs[file.path] = newIconSpec
             showNotification(project, "Generating icons...")
-            ActionManager
-                .getInstance()
-                .getAction("us.appfluent.xwidget.actions.generate-icons")
-                ?.actionPerformed(buildActionEvent(PluginActionPlaces.BACKGROUND))
+            ActionManager.getInstance().tryToExecute(
+                ActionManager.getInstance().getAction("us.appfluent.xwidget.actions.generate-icons"),
+                null,
+                null,
+                PluginActionPlaces.BACKGROUND,
+                false
+            )
         }
     }
 
-    private fun buildActionEvent(place: String): AnActionEvent {
-        val dataContext = SimpleDataContext.getSimpleContext(CommonDataKeys.PROJECT, project)
-        return AnActionEvent(
-            null,
-            dataContext,
-            place,
-            Presentation(),
-            ActionManager.getInstance(),
-            0
-        )
+    private fun onPubspecLockFileChange(file: VirtualFile) {
+        LOG.debug("CHANGED: Pubspec Lock File")
+        pubspecLock = DartUtils.readPubspecLockFile(project)
     }
 }
 
@@ -265,8 +281,8 @@ class InflaterSpec constructor(
     constructor() : this(null, null)
 
     fun isDifferent(other: InflaterSpec): Boolean {
-        return imports.isDifferent(other.imports) ||
-                inflaters.isDifferent(other.inflaters)
+        return imports.isDifferent2(other.imports) ||
+                inflaters.isDifferent2(other.inflaters)
     }
 }
 
@@ -283,8 +299,8 @@ class IconSpec constructor(
     constructor() : this(null, null, null)
 
     fun isDifferent(other: IconSpec): Boolean {
-        return imports.isDifferent(other.imports) ||
-                icons.isDifferent(other.icons) ||
-                iconSet.isDifferent(other.iconSet)
+        return imports.isDifferent2(other.imports) ||
+                icons.isDifferent2(other.icons) ||
+                iconSet.isDifferent2(other.iconSet)
     }
 }
