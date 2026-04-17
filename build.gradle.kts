@@ -3,12 +3,12 @@ import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "2.1.0"
-    id("org.jetbrains.intellij.platform") version "2.5.0"
+    id("org.jetbrains.kotlin.jvm") version "2.3.0"
+    id("org.jetbrains.intellij.platform") version "2.10.4"
 }
 
 group = "us.appfluent"
-version = "0.1.5"
+version = "0.1.6"
 
 repositories {
     google()
@@ -31,10 +31,10 @@ intellijPlatform {
     pluginVerification {
         ides {
             select {
-                types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
+                types = listOf(IntelliJPlatformType.IntellijIdea)
                 channels = listOf(ProductRelease.Channel.RELEASE)
-                sinceBuild = "242"
-                untilBuild = "252.*"
+                sinceBuild = "253"
+                untilBuild = "261.*"
             }
         }
     }
@@ -42,25 +42,25 @@ intellijPlatform {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity("2025.2.5", useInstaller = true)
+        intellijIdea("2026.1")
 
         bundledPlugins(
             "com.intellij.java",
             "org.jetbrains.plugins.terminal",
         )
         plugins(
-            "io.flutter:83.0.4",
-            "Dart:252.25557.23"
+            "io.flutter:91.0.0",
+            "Dart:504.0.0"
         )
         pluginVerifier()
     }
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.0")  // Core Jackson library
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.3.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.6")  // Core Jackson library
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.18.6")
     implementation("org.yaml:snakeyaml:2.2")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-    testImplementation("com.jetbrains.intellij.platform:test-framework:252.27397.106")
+    testImplementation("com.jetbrains.intellij.platform:test-framework:261.22158.291")
 }
 
 sourceSets {
@@ -83,8 +83,8 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("242")
-        untilBuild.set("252.*")
+        sinceBuild.set("253")
+        untilBuild.set("261.*")
     }
 
     signPlugin {
@@ -100,8 +100,8 @@ tasks {
 
 val runIdeFlutter by intellijPlatformTesting.runIde.registering {
     plugins {
-        plugin("Dart:252.25557.23")
-        plugin("io.flutter:83.0.4")
-        plugin("org.jetbrains.android:252.25557.131")
+        plugin("Dart:504.0.0")
+        plugin("io.flutter:91.0.0")
+        plugin("org.jetbrains.android:261.22158.277")
     }
 }

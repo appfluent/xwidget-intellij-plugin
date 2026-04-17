@@ -4,7 +4,7 @@
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>us.appfluent.xwidget-intellij-plugin</id>
 
-    <version>0.1.5</version>
+    <version>0.1.6</version>
 
     <!-- Public plugin name should be written in Title Case -->
     <name>Flutter XWidget</name>

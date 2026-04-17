@@ -1,3 +1,8 @@
+### 0.1.6 (Apr, 15 2026)
+
+* Updated plugin compatibility to support IntelliJ IDEA 2025.3 through 2026.1 and Android Studio. 
+
+
 ### 0.1.5 (Nov 22, 2025)
 
 * Added support for XWidget versions >= 0.1.0
