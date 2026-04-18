@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.google.gson.JsonObject
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.components.*
@@ -12,18 +13,24 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import org.dartlang.vm.service.VmService
+import org.dartlang.vm.service.consumer.ServiceExtensionConsumer
+import org.dartlang.vm.service.consumer.VMConsumer
+import org.dartlang.vm.service.element.RPCError
+import org.dartlang.vm.service.element.VM
 import us.appfluent.xwidget.DartConstants.Companion.PUBSPEC_LOCK_PATH
 import us.appfluent.xwidget.PluginActionPlaces
 import us.appfluent.xwidget.XWidgetConstants.Companion.DEFAULT_CONFIG_PATH
 import us.appfluent.xwidget.utils.DartUtils
-import us.appfluent.xwidget.utils.UiUtils.Companion.showNotification
 import us.appfluent.xwidget.utils.FileUtils.Companion.findVirtualFile
 import us.appfluent.xwidget.utils.FileUtils.Companion.toAbsolutePath
+import us.appfluent.xwidget.utils.UiUtils.Companion.showNotification
 import us.appfluent.xwidget.utils.Version
 import us.appfluent.xwidget.utils.XWidgetUtils.Companion.getIconSpec
 import us.appfluent.xwidget.utils.XWidgetUtils.Companion.getInflaterSpec
 import us.appfluent.xwidget.utils.isDifferent2
 import java.io.File
+import java.nio.file.Paths
 import kotlin.io.path.pathString
 
 class XWidgetState: BaseState() {
@@ -73,8 +80,8 @@ class XWidgetService(val project: Project) : SimplePersistentStateComponent<XWid
 
     init {
         val fileService = project.getService(FileWatcherService::class.java)
-        fileService.startWatching(configPath, ::onConfigFileChange)
-        fileService.startWatching(pubspecLockPath, ::onPubspecLockFileChange)
+        fileService.startWatching("reloadConfig", configPath, ::onConfigFileChange)
+        fileService.startWatching("reloadPubspec", pubspecLockPath, ::onPubspecLockFileChange)
     }
 
     override fun loadState(state: XWidgetState) {
@@ -82,15 +89,104 @@ class XWidgetService(val project: Project) : SimplePersistentStateComponent<XWid
         toggleAutoGenerate(config, state.autoGenerateEnabled)
     }
 
+    fun startHotReloadFragments(vmService: VmService, sessionId: String) {
+        val fileWatcherService = project.getService(FileWatcherService::class.java)
+        val fragmentsPath = config.fragmentsPath + "/"
+        val basePath = Paths.get("${project.basePath}/$fragmentsPath")
+        fileWatcherService.startWatching("hotReloadFragments_$sessionId", fragmentsPath) { file ->
+            if (file.name.endsWith(".xml")) {
+                val fqn = basePath.relativize(Paths.get(file.path)).toString()
+                hotReloadFragment(vmService, fqn, file)
+            }
+        }
+    }
+
+    fun stopHotReloadFragments(sessionId: String) {
+        val fileWatcherService = project.getService(FileWatcherService::class.java)
+        fileWatcherService.stopWatching("hotReloadFragments_$sessionId")
+    }
+
+    fun startHotReloadValues(vmService: VmService, sessionId: String) {
+        val fileWatcherService = project.getService(FileWatcherService::class.java)
+        val valuesPath = config.valuesPath + "/"
+        fileWatcherService.startWatching("hotReloadValues_$sessionId", valuesPath) { file ->
+            if (file.name.endsWith(".xml")) {
+                hotReloadValues(vmService, file)
+            }
+        }
+    }
+
+    fun stopHotReloadValues(sessionId: String) {
+        val fileWatcherService = project.getService(FileWatcherService::class.java)
+        fileWatcherService.stopWatching("hotReloadValues_$sessionId")
+    }
+
+    private fun hotReloadFragment(vmService: VmService, fqn: String, file: VirtualFile) {
+        vmService.getVM(object : VMConsumer {
+            override fun received(vm: VM) {
+                val params = JsonObject().apply {
+                    addProperty("fqn", fqn)
+                    addProperty("content", String(file.contentsToByteArray()))
+                }
+                vmService.callServiceExtension(
+                    vm.isolates.first().id,
+                    "ext.xwidget.updateFragment",
+                    params,
+                    object : ServiceExtensionConsumer {
+                        override fun received(response: JsonObject) {
+                            LOG.debug("Fragment updated: $fqn")
+                        }
+                        override fun onError(error: RPCError) {
+                            LOG.warn("Failed to update fragment: ${error.message}")
+                        }
+                    }
+                )
+            }
+            override fun onError(error: RPCError) {
+                LOG.warn("Failed to get VM: ${error.message}")
+            }
+        })
+    }
+
+    private fun hotReloadValues(vmService: VmService, file: VirtualFile) {
+        vmService.getVM(object : VMConsumer {
+            override fun received(vm: VM) {
+                val params = JsonObject().apply {
+                    addProperty("content", String(file.contentsToByteArray()))
+                }
+                vmService.callServiceExtension(
+                    vm.isolates.first().id,
+                    "ext.xwidget.updateValues",
+                    params,
+                    object : ServiceExtensionConsumer {
+                        override fun received(response: JsonObject) {
+                            LOG.debug("Values updated")
+                        }
+                        override fun onError(error: RPCError) {
+                            LOG.warn("Failed to update values: ${error.message}")
+                        }
+                    }
+                )
+            }
+            override fun onError(error: RPCError) {
+                LOG.warn("Failed to get VM: ${error.message}")
+            }
+        })
+    }
+
     private fun toggleAutoGenerate(config: XWidgetConfig, enabled: Boolean) {
         val fileWatcherService = project.getService(FileWatcherService::class.java)
         for (inflaterSource in config.inflaters.sources) {
-            if (enabled) fileWatcherService.startWatching(inflaterSource, ::onInflaterSpecFileChange)
-            else fileWatcherService.stopWatching(inflaterSource)
+            val absolutePath = toAbsolutePath(project, inflaterSource).pathString
+            val watcherId = "autoGenInflaters:$absolutePath"
+            if (enabled) fileWatcherService.startWatching(watcherId, absolutePath, ::onInflaterSpecFileChange)
+            else fileWatcherService.stopWatching(watcherId)
         }
         for (iconSource in config.icons.sources) {
-            if (enabled) fileWatcherService.startWatching(iconSource, ::onIconSpecFileChange)
-            else fileWatcherService.stopWatching(iconSource)
+            val absolutePath = toAbsolutePath(project, iconSource).pathString
+            val watcherId = "autoGenIcons:$absolutePath"
+            if (enabled) fileWatcherService.startWatching(watcherId, absolutePath, ::onIconSpecFileChange)
+            else fileWatcherService.stopWatching(watcherId)
         }
     }
 
@@ -195,17 +291,21 @@ class XWidgetService(val project: Project) : SimplePersistentStateComponent<XWid
 
 @Suppress("UNUSED")
 class XWidgetConfig @JsonCreator constructor(
+    @JsonProperty("fragmentsPath") fragmentsPath: String?,
+    @JsonProperty("valuesPath") valuesPath: String?,
     @JsonProperty("inflaters") inflaters: XWidgetInflaters?,
     @JsonProperty("schema") schema: XWidgetSchema?,
     @JsonProperty("icons") icons: XWidgetIcons?,
     @JsonProperty("controllers") controllers: XWidgetControllers?
 ) {
+    val fragmentsPath: String = fragmentsPath ?: "resources/fragments"
+    val valuesPath: String = valuesPath ?: "resources/values"
     val inflaters: XWidgetInflaters = inflaters ?: XWidgetInflaters()
     val schema: XWidgetSchema = schema ?: XWidgetSchema()
     val icons: XWidgetIcons = icons ?: XWidgetIcons()
     val controllers: XWidgetControllers = controllers ?: XWidgetControllers()
 
-    constructor() : this(null, null, null, null)
+    constructor() : this(null, null, null, null, null, null)
 }
 
 @Suppress("UNUSED")

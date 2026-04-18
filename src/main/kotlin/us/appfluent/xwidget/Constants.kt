@@ -15,6 +15,9 @@ class XWidgetConstants {
         const val DEFAULT_CONFIG_PATH = "xwidget_config.yaml"
         const val XWIDGET_SRC_PATH = "package:xwidget/src/xwidget.dart"
 
+        // hot reload
+        val HOT_RELOAD_SINCE_VERSION = Version.parse("0.4.2")
+
         // xwidget < 0.1.0
         val LEGACY_LAST_VERSION = Version.parse("0.0.52")
         const val LEGACY_CMD_GENERATE_ALL = "dart run xwidget:generate"

@@ -4,9 +4,10 @@ This plugin provides IDE support for [XWidget](https://pub.dev/packages/xwidget)
 
 ## Features
 
+* Hot reload of fragments and resource values
 * EL syntax highlighting
 * Tools menu items for component generation and project initialization
-* Context aware popup menu items to navigate to controllers and fragments.
+* Context aware popup menu items to navigate to controllers and fragments
 
 ## Known issues
 

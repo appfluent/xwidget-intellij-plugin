@@ -1,7 +1,13 @@
+### 0.1.7 (Apr, 17 2026)
+
+* Added hot reload for XML fragments and values. Edit a fragment or value resource file in the IDE and see
+  changes reflected instantly in the running app — no restart required. Works on physical devices, emulators,
+  simulators, and desktop. Requires XWidget package v0.4.2 or later.
+* Compatible with IntelliJ IDEA 2026.1 and Android Studio.
+
 ### 0.1.6 (Apr, 15 2026)
 
 * Updated plugin compatibility to support IntelliJ IDEA 2025.3 through 2026.1 and Android Studio. 
-
 
 ### 0.1.5 (Nov 22, 2025)
 

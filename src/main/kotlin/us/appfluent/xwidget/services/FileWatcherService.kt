@@ -1,44 +1,61 @@
 package us.appfluent.xwidget.services
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.isFile
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
+import us.appfluent.xwidget.utils.FileUtils.Companion.toAbsolutePath
+import kotlin.io.path.pathString
 
 @Service(Service.Level.PROJECT)
-class FileWatcherService(val project: Project) {
+class FileWatcherService(val project: Project) : Disposable {
     companion object {
         private val LOG: Logger = Logger.getInstance(FileWatcherService::class.java)
     }
 
-    private val handlers: MutableList<FileChangeHandler> = mutableListOf()
+    private val handlers: MutableMap<String, FileChangeHandler> = mutableMapOf()
 
     init {
         VirtualFileManager.getInstance().addAsyncFileListener(
             FileChangeListener(::afterFileChange),
-            { handlers.clear() }
+            this
         )
     }
 
-    fun startWatching(path: String, callback: (VirtualFile) -> Unit) {
-        LOG.debug("START: $path")
-        handlers.add(FileChangeHandler(path, callback))
+    fun startWatching(id: String, path: String, callback: (VirtualFile) -> Unit) {
+        val isDir = (path.endsWith("/"))
+        val match = if (isDir) ::matchDirectory else ::matchFile
+        val absolutePath = toAbsolutePath(project, path).pathString + if (isDir) "/" else ""
+        handlers[id] = (FileChangeHandler(id, absolutePath, match, callback))
+        LOG.debug("Started watching '$absolutePath'")
     }
 
-    fun stopWatching(path: String) {
-        LOG.debug("STOP: $path")
-        handlers.removeIf { it.filePath.endsWith(path) }
+    fun stopWatching(id: String) {
+        handlers.remove(id)
+        LOG.debug("Stopped watching '$id'")
+    }
+
+    override fun dispose() {
+        handlers.clear()
+    }
+
+    private fun matchFile(path: String, file: VirtualFile): Boolean {
+        return file.isFile && file.path == path
+    }
+
+    private fun matchDirectory(path: String, file: VirtualFile): Boolean {
+        return file.isFile && file.path.startsWith(path)
     }
 
     private fun afterFileChange(event: VFileEvent) {
         if (event.file != null) {
-            val relevantHandlers = handlers.filter {
-                event.path.endsWith(it.filePath)
-            }
+            val relevantHandlers = handlers.values.filter { it.match(it.path, event.file!!) }
             for (handler in relevantHandlers) {
                 handler.execute(event.file!!)
             }
@@ -63,32 +80,16 @@ class FileChangeListener(val afterChange: (event: VFileEvent) -> Unit) : AsyncFi
 }
 
 data class FileChangeHandler(
-    val filePath: String,
+    val id: String,
+    val path: String,
+    val match: (String, VirtualFile) -> Boolean,
     private val callback: (VirtualFile) -> Unit
 ) {
     fun execute(virtualFile: VirtualFile) {
         callback(virtualFile)
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as FileChangeHandler
-
-        if (filePath != other.filePath) return false
-        if (callback != other.callback) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = filePath.hashCode()
-        result = 31 * result + callback.hashCode()
-        return result
-    }
-
     override fun toString(): String {
-        return "FileChangeHandler(filePath='$filePath', callback=$callback)"
+        return "FileChangeHandler(id='$id', path='$path', callback=$callback)"
     }
 }

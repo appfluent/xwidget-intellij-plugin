@@ -4,7 +4,7 @@
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>us.appfluent.xwidget-intellij-plugin</id>
 
-    <version>0.1.6</version>
+    <version>0.1.7</version>
 
     <!-- Public plugin name should be written in Title Case -->
     <name>Flutter XWidget</name>
@@ -17,9 +17,10 @@
     -->
     <description><![CDATA[Provides support for the Flutter package XWidget in both IntelliJ IDEA and Android Studio, enhancing development productivity and workflow.<br>
       <ul>
+        <li>Hot reload of fragments and resource values</li>
         <li>EL syntax highlighting</li>
         <li>Tools menu items for component generation and project initialization</li>
-        <li>Context aware popup menu items to navigate to controllers and fragments.</li>
+        <li>Context aware popup menu items to navigate to controllers and fragments</li>
         <li>Links to documentation and issues</li>
       </ul>
       <br>
@@ -32,9 +33,17 @@
          into <![CDATA[... ]]> section.
      -->
     <change-notes><![CDATA[
+        <h3>0.1.7</h3>
+        <ul>
+            <li>Added hot reload of fragments and resource values (XWidget v0.4.2+)</li>
+        </ul>
+        <h3>0.1.6</h3>
+        <ul>
+            <li>IntelliJ IDEA 2025.3 through 2026.1 compatibility</li>
+        </ul>
         <h3>0.1.5</h3>
         <ul>
-            <li>Added support for XWidget versions >= 0.1.0</li>
+            <li>Added support for XWidget v0.1.0+</li>
         </ul>
         <h3>0.1.4</h3>
         <ul>

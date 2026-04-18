@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "us.appfluent"
-version = "0.1.6"
+version = "0.1.7"
 
 repositories {
     google()
@@ -33,7 +33,7 @@ intellijPlatform {
             select {
                 types = listOf(IntelliJPlatformType.IntellijIdea)
                 channels = listOf(ProductRelease.Channel.RELEASE)
-                sinceBuild = "253"
+                sinceBuild = "261.*"
                 untilBuild = "261.*"
             }
         }
@@ -83,7 +83,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("253")
+        sinceBuild.set("261")
         untilBuild.set("261.*")
     }
 
