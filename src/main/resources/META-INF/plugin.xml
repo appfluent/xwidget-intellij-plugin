@@ -4,7 +4,7 @@
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>us.appfluent.xwidget-intellij-plugin</id>
 
-    <version>0.1.7</version>
+    <version>0.1.8</version>
 
     <!-- Public plugin name should be written in Title Case -->
     <name>Flutter XWidget</name>
@@ -33,17 +33,22 @@
          into <![CDATA[... ]]> section.
      -->
     <change-notes><![CDATA[
+        <h3>0.1.8</h3>
+        <ul>
+            <li>Compatible with Android Studio 2025.3 through 2026.1 and IntelliJ IDEA 2025.3 through 2026.1</li>
+        </ul>
         <h3>0.1.7</h3>
         <ul>
-            <li>Added hot reload of fragments and resource values (XWidget v0.4.2+)</li>
+            <li>Added hot reload of fragments and resource values (requires XWidget 0.5.0 or newer)</li>
+            <li>Compatible with IntelliJ IDEA 2026.1 only</li>
         </ul>
         <h3>0.1.6</h3>
         <ul>
-            <li>IntelliJ IDEA 2025.3 through 2026.1 compatibility</li>
+            <li>Compatible with Android Studio 2025.3 through 2026.1 and IntelliJ IDEA 2025.3 through 2026.1</li>
         </ul>
         <h3>0.1.5</h3>
         <ul>
-            <li>Added support for XWidget v0.1.0+</li>
+            <li>Added support for XWidget v0.1.0 or newer</li>
         </ul>
         <h3>0.1.4</h3>
         <ul>

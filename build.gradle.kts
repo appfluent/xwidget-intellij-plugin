@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "us.appfluent"
-version = "0.1.7"
+version = "0.1.8"
 
 repositories {
     google()
@@ -33,7 +33,7 @@ intellijPlatform {
             select {
                 types = listOf(IntelliJPlatformType.IntellijIdea)
                 channels = listOf(ProductRelease.Channel.RELEASE)
-                sinceBuild = "261.*"
+                sinceBuild = "253.*"
                 untilBuild = "261.*"
             }
         }
@@ -42,7 +42,7 @@ intellijPlatform {
 
 dependencies {
     intellijPlatform {
-        intellijIdea("2026.1")
+        intellijIdea("2025.3")
 
         bundledPlugins(
             "com.intellij.java",
@@ -83,7 +83,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("261")
+        sinceBuild.set("253")
         untilBuild.set("261.*")
     }
 
@@ -102,6 +102,6 @@ val runIdeFlutter by intellijPlatformTesting.runIde.registering {
     plugins {
         plugin("Dart:504.0.0")
         plugin("io.flutter:91.0.0")
-        plugin("org.jetbrains.android:261.22158.277")
+        plugin("org.jetbrains.android:253.30387.90")
     }
 }

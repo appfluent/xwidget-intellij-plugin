@@ -1,6 +1,6 @@
 # XWidget Plugin for Android Studio, IntelliJ IDEA and other JetBrains IDEs
 
-This plugin provides IDE support for [XWidget](https://pub.dev/packages/xwidget).
+This plugin provides IDE support for [XWidget](https://docs.xwidget.dev).
 
 ## Features
 
@@ -11,4 +11,4 @@ This plugin provides IDE support for [XWidget](https://pub.dev/packages/xwidget)
 
 ## Known issues
 
-* Not all EL syntax errors are highlighted 
+* Not all EL syntax errors are highlighted

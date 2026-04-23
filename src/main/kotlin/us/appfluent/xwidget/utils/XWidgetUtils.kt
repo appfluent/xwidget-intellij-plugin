@@ -78,7 +78,7 @@ class XWidgetUtils {
         fun getInflaterSpec(project: Project, virtualFile: VirtualFile): InflaterSpec {
             val imports: MutableList<PsiElement> = mutableListOf()
             var inflaters: List<PsiElement>? = null
-            ReadAction.runBlocking<Throwable> {
+            ReadAction.run<Throwable> {
                 DartUtils.findDartFile(project, virtualFile)?.children?.forEach { child ->
                     if (child is DartImportStatement) {
                         imports.add(child)
@@ -94,7 +94,7 @@ class XWidgetUtils {
             val imports: MutableList<PsiElement> = mutableListOf()
             var icons: List<PsiElement>? = null
             var iconSet: List<PsiElement>? = null
-            ReadAction.runBlocking<Throwable> {
+            ReadAction.run<Throwable> {
                 DartUtils.findDartFile(project, virtualFile)?.children?.forEach { child ->
                     if (child is DartImportStatement) {
                         imports.add(child)
