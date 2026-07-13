@@ -18,7 +18,7 @@ import com.intellij.xdebugger.evaluation.XDebuggerEvaluator.XEvaluationCallback
 import com.intellij.xdebugger.frame.XValue
 import com.jetbrains.lang.dart.psi.DartImportStatement
 import com.jetbrains.lang.dart.psi.DartVarDeclarationList
-import us.appfluent.xwidget.XWidgetConstants.Companion.NAMESPACE
+import us.appfluent.xwidget.XWidgetConstants.Companion.FRAGMENT_NAMESPACES
 import us.appfluent.xwidget.debug.FragmentBreakpointType
 import us.appfluent.xwidget.services.IconSpec
 import us.appfluent.xwidget.services.InflaterSpec
@@ -29,7 +29,7 @@ class XWidgetUtils {
         private val LOG: Logger = Logger.getInstance(XWidgetUtils::class.java)
 
         fun isFragment(psiFile: PsiFile?): Boolean {
-            return psiFile is XmlFile && psiFile.document?.rootTag?.namespace == NAMESPACE
+            return psiFile is XmlFile && psiFile.document?.rootTag?.namespace in FRAGMENT_NAMESPACES
         }
 
         fun navigateToFragment(project: Project, fragmentName: String) {

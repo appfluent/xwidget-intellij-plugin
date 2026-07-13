@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "us.appfluent"
-version = "0.1.8"
+version = "0.2.0"
 
 repositories {
     google()
@@ -34,7 +34,7 @@ intellijPlatform {
                 types = listOf(IntelliJPlatformType.IntellijIdea)
                 channels = listOf(ProductRelease.Channel.RELEASE)
                 sinceBuild = "253.*"
-                untilBuild = "261.*"
+                untilBuild = "262.*"
             }
         }
     }
@@ -84,7 +84,7 @@ tasks {
 
     patchPluginXml {
         sinceBuild.set("253")
-        untilBuild.set("261.*")
+        untilBuild.set("262.*")
     }
 
     signPlugin {

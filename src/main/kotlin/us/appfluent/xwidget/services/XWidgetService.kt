@@ -20,6 +20,7 @@ import org.dartlang.vm.service.element.RPCError
 import org.dartlang.vm.service.element.VM
 import us.appfluent.xwidget.DartConstants.Companion.PUBSPEC_LOCK_PATH
 import us.appfluent.xwidget.PluginActionPlaces
+import us.appfluent.xwidget.XWidgetConstants.Companion.CONFIG_PATH
 import us.appfluent.xwidget.XWidgetConstants.Companion.DEFAULT_CONFIG_PATH
 import us.appfluent.xwidget.utils.DartUtils
 import us.appfluent.xwidget.utils.FileUtils.Companion.findVirtualFile
@@ -44,7 +45,10 @@ class XWidgetService(val project: Project) : SimplePersistentStateComponent<XWid
         private val LOG: Logger = Logger.getInstance(XWidgetService::class.java)
     }
 
-    val configPath = toAbsolutePath(project, DEFAULT_CONFIG_PATH).pathString
+    // Config lives in .xwidget/ for builder >= 0.7.0 projects and at the
+    // project root before that. Both paths are watched; reads prefer .xwidget/.
+    val configPathPreferred = toAbsolutePath(project, CONFIG_PATH).pathString
+    val configPathLegacy = toAbsolutePath(project, DEFAULT_CONFIG_PATH).pathString
     val pubspecLockPath = toAbsolutePath(project, PUBSPEC_LOCK_PATH).pathString
 
     var pubspecLock = DartUtils.readPubspecLockFile(project)
@@ -80,7 +84,8 @@ class XWidgetService(val project: Project) : SimplePersistentStateComponent<XWid
 
     init {
         val fileService = project.getService(FileWatcherService::class.java)
-        fileService.startWatching("reloadConfig", configPath, ::onConfigFileChange)
+        fileService.startWatching("reloadConfigXWidget", configPathPreferred, ::onConfigFileChange)
+        fileService.startWatching("reloadConfigLegacy", configPathLegacy, ::onConfigFileChange)
         fileService.startWatching("reloadPubspec", pubspecLockPath, ::onPubspecLockFileChange)
     }
 
@@ -194,8 +199,9 @@ class XWidgetService(val project: Project) : SimplePersistentStateComponent<XWid
         try {
             val mapper = ObjectMapper(YAMLFactory())
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            val configFile = File(configPath)
-            if (configFile.exists()) {
+            val configFile = listOf(File(configPathPreferred), File(configPathLegacy))
+                .firstOrNull { it.exists() }
+            if (configFile != null) {
                 return mapper.readValue(configFile, XWidgetConfig::class.java)
             }
         } catch (e: Exception) {

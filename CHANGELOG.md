@@ -1,3 +1,22 @@
+### 0.2.0 (Jul 13, 2026)
+
+* Added support for xwidget_builder 0.7.0 projects. `xwidget_config.yaml` is now discovered
+  in the `.xwidget/` config directory with fallback to the project root, and both locations
+  are watched — config reloads, hot reload paths, and auto-generation pick up a project's
+  migration to the new layout without restarting the IDE.
+* Fragment features (navigation, gutter actions) now recognize the new fragment namespace
+  `https://xwidget.dev/fragments` alongside the legacy `http://www.appfluent.us/xwidget`,
+  so both migrated and pre-0.7 projects work.
+* EL syntax highlighting now activates only in XWidget fragment documents (root
+  element in an XWidget fragment namespace). Other XML that happens to contain
+  `${...}` — Maven poms, Spring configs — no longer gets EL colors or false
+  "bad character" errors. Fragments without an `xmlns` declaration lose EL
+  highlighting; add the namespace to restore it (it also enables validation).
+* Compatible with IntelliJ IDEA 2025.3 through 2026.2 and Android Studio.
+* Schema-driven completion and validation follow the relocated, renamed schemas
+  (`.xwidget/fragments_schema.g.xsd` etc.) automatically via the IDE's namespace index —
+  including the new routes and values schemas.
+
 ### 0.1.8 (Apr 23, 2026)
 
 * Restored Android Studio 2025.3 compatibility. Hot reload now works across IntelliJ IDEA 2025.3 through 2026.1 and Android Studio 2025.3+.

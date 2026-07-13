@@ -12,9 +12,15 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.xml.XmlAttributeValue
 
 import us.appfluent.xwidget.lexer.ELLexer
+import us.appfluent.xwidget.utils.XWidgetUtils
 
 class ELAnnotator : Annotator {
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
+        // EL is only evaluated during fragment inflation, so only fragment
+        // documents (root tag in FRAGMENT_NAMESPACES) get EL highlighting.
+        // Without this gate, any XML using ${...} — Maven poms, Spring
+        // configs — got EL colors and false "bad character" errors.
+        if (!XWidgetUtils.isFragment(element.containingFile)) return
         if (element is XmlAttributeValue) {
             val regex = "\\$\\{(.*?)}".toRegex()
             val matches = regex.findAll(element.value)

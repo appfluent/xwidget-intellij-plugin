@@ -11,8 +11,15 @@ class DartConstants {
 
 class XWidgetConstants {
     companion object {
-        const val NAMESPACE = "http://www.appfluent.us/xwidget"
+        val FRAGMENT_NAMESPACES = setOf(
+            "https://xwidget.dev/fragments",
+            "http://www.appfluent.us/xwidget"
+        );
+        // Legacy (builder < 0.7.0) config location at the project root.
         const val DEFAULT_CONFIG_PATH = "xwidget_config.yaml"
+        // XWidget's config directory within the user's project (builder >= 0.7.0).
+        const val CONFIG_DIR = ".xwidget"
+        const val CONFIG_PATH = "$CONFIG_DIR/xwidget_config.yaml"
         const val XWIDGET_SRC_PATH = "package:xwidget/src/xwidget.dart"
 
         // hot reload
